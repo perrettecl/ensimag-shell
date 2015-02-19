@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include <errno.h>
+#include <string.h>
 
 #include "variante.h"
 #include "readcmd.h"
@@ -19,16 +21,19 @@
 #endif
 
 #define EXIT_ON_FAILURE -1
+#define PID_INEXISTANT_LISTE -1
+#define PID_SUPPRIME 0
 
-typedef struct {
+
+typedef struct liste_processus {
 	pid_t pid;
 	int numCmd;
 	char ** nomCmd;
-	processus * suiv;
-} processus;
+	struct liste_processus * suiv;
+} liste_processus;
 
-processus * new_processus(pid_t pid, int numCmd, char ** nomCmd, processus * suivant) {
-	processus * nvProc = malloc(sizeof(processus));
+struct liste_processus * new_processus(pid_t pid, int numCmd, char ** nomCmd, struct liste_processus * suivant) {
+	struct liste_processus * nvProc = malloc(sizeof(struct liste_processus));
 
 	nvProc->pid = pid;
 	nvProc->numCmd = numCmd;
@@ -38,10 +43,22 @@ processus * new_processus(pid_t pid, int numCmd, char ** nomCmd, processus * sui
 	return nvProc;
 }
 
+void afficher_liste_processus(struct liste_processus * liste) {
+    struct liste_processus * cour = liste;
+    while (cour != NULL) {
+        printf("[%d] %s\n", cour->pid, cour->nomCmd[0]);
+        cour = cour->suiv;
+    }
+}
+
+int supprimer_processus_liste(pid_t pid_proc, struct liste_processus * liste {
+        return PID_SUPPRIME;
+}
+
 int main() {
-        printf("Variante %d: %s\n", VARIANTE, VARIANTE_STRING);
+    printf("Variante %d: %s\n", VARIANTE, VARIANTE_STRING);
 	
-	processus * listeProc = NULL;
+	struct liste_processus * listeProc = NULL;
 	
 	int numCmd = 0;
 	//int status;
@@ -74,7 +91,12 @@ int main() {
                 */
 
 		if(l->seq[0]!=0) {
-			
+		
+            if(strcmp(l->seq[0][0], "jobs") == 0) {
+                    afficher_liste_processus(listeProc);
+                    continue;
+            }
+
 			pid_t pid_fils = fork();
 			
 			if(pid_fils == -1) {
@@ -99,7 +121,7 @@ int main() {
 				//on se trouve dans le père
 				if(!l->bg) {
 					//on attend le fils
-					wait(0);
+					waitpid(pid_fils, 0, WUNTRACED);
 				} else {
 					char **cmd = l->seq[0];
 					listeProc = new_processus(pid_fils, numCmd, cmd, listeProc);
@@ -107,6 +129,8 @@ int main() {
 					printf("[%d] %d\n", numCmd, pid_fils);
 				}
 				
+                //on attend les processus en bg, si un termine, on l'affiche et
+                //                              on le supprime de la liste
 				//waitpid(-1, &status, WNOHANG);
 			}
 		}
