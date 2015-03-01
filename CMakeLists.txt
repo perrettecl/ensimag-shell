@@ -15,7 +15,7 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -std=gnu99")
 # et le numéro de la variante que vous avez choisi
 #########
 set(VARIANTE_LOGINS dangeloa perrettc)
-set(VARIANTE_SUJET 1)
+set(VARIANTE_SUJET 6)
 ###
 list(SORT VARIANTE_LOGINS)
 if (VARIANTE_LOGINS MATCHES "login[123]")
